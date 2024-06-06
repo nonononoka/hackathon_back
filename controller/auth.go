@@ -12,7 +12,8 @@ import (
 )
 
 func authMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
+	return func(ctx *gin.Context) {
+		log.Printf("authMiddleware")
 		opt := option.WithCredentialsFile(os.Getenv("GOOGLE_CREDENTIALS_JSON"))
 
 		app, err := firebase.NewApp(context.Background(), nil, opt)
@@ -20,23 +21,31 @@ func authMiddleware() gin.HandlerFunc {
 			log.Printf("error initializing app: %v\n", err)
 			os.Exit(1)
 		}
-		auth, err := app.Auth(context.Background())
+		auth, err := app.Auth(ctx)
 		if err != nil {
 			log.Printf("error initializing auth: %v\n", err)
 			os.Exit(1)
 		}
 
-		authHandler := c.Request.Header.Get("Authorization")
+		authHandler := ctx.Request.Header.Get("Authorization")
 		idToken := strings.Replace(authHandler, "Bearer ", "", 1)
-
-		token, err := auth.VerifyIDToken(context.Background(), idToken)
+		log.Printf(idToken)
+		token, err := auth.VerifyIDToken(ctx, idToken)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"Error": err.Error(),
 			})
 			return
 		}
-		log.Printf("idToken: %v", token)
-		c.Next()
+		if token.UID == "" {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"msg":    "Unauthorized",
+				"detail": "invalid token",
+			})
+			ctx.Abort()
+			return
+		}
+		ctx.Set("token", token)
+		ctx.Next()
 	}
 }

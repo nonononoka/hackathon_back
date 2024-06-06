@@ -1,15 +1,13 @@
 package controller
 
 import (
-	"net/http"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 type Todo struct {
 	ID    uint   `json:"id"`
-	Title string `json:"title"`
+	Email string `json:"email"`
 }
 
 func StartServer() {
@@ -29,19 +27,13 @@ func StartServer() {
 		},
 	}))
 
-	v1 := router.Group("todo/api/v1")
+	v1 := router.Group("twitter/api/v1")
+	v1.Use(authMiddleware())
 	{
-		v1.GET("todos", todosGET)
-		v1.POST("todos", todoPOST)
+		v1.GET("me", GetMe)
+		v1.POST("me", PostMe)
+		v1.GET("tweets", GetMyTweets)
+		v1.POST("tweets", PostTweet)
 	}
 	router.Run(":8080")
-}
-
-func todosGET(c *gin.Context) {
-	todos := []Todo{
-		{ID: 1, Title: "Complete homework"},
-		{ID: 2, Title: "Buy groceries"},
-		{ID: 3, Title: "Go for a run"},
-	}
-	c.JSON(http.StatusOK, gin.H{"todos": todos})
 }
