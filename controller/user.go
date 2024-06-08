@@ -36,6 +36,6 @@ func PostMe(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
-
+	log.Println(userInfo)
 	ctx.JSON(http.StatusCreated, userInfo)
 }

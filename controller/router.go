@@ -24,6 +24,7 @@ func StartServer() {
 		},
 		AllowHeaders: []string{
 			"Authorization",
+			"Content-Type",
 		},
 	}))
 
@@ -32,8 +33,9 @@ func StartServer() {
 	{
 		v1.GET("me", GetMe)
 		v1.POST("me", PostMe)
-		v1.GET("tweets", GetMyTweets)
-		v1.POST("tweets", PostTweet)
+		v1.GET("tweet", GetTweets)
+		v1.POST("tweet", PostTweet)
+		//v1.GET("users/:id/tweets")
 	}
 	router.Run(":8080")
 }

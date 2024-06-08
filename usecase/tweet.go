@@ -7,8 +7,8 @@ import (
 	"log"
 )
 
-func GetMyTweets(token *auth.Token) ([]model.Tweet, error) {
-	tweets, err := dao.GetMyTweets(token)
+func GetTweets(token *auth.Token, tags []string) ([]model.Tweet, error) {
+	tweets, err := dao.GetTweets(token, tags)
 
 	if err != nil {
 		log.Println("an error occurred at usecase/tweets")
@@ -16,8 +16,8 @@ func GetMyTweets(token *auth.Token) ([]model.Tweet, error) {
 	return tweets, err
 }
 
-func PostTweet(token *auth.Token, body string) (model.Tweet, error) {
-	tweet, err := dao.PostTweet(token, body)
+func PostTweet(token *auth.Token, body string, tags []string) (model.Tweet, error) {
+	tweet, err := dao.PostTweet(token, body, tags)
 
 	if err != nil {
 		log.Println("an error occurred at usecase/tweets")

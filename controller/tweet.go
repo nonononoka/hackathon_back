@@ -8,15 +8,17 @@ import (
 	"net/http"
 )
 
-type Content struct {
-	Text string `json:"text"`
+type Body struct {
+	Text string   `json:"body"`
+	Tags []string `json:"tags"`
 }
 
-func GetMyTweets(ctx *gin.Context) {
+func GetTweets(ctx *gin.Context) {
 	token := ctx.MustGet("token").(*auth.Token)
-
-	tweets, error := usecase.GetMyTweets(token)
+	tags := ctx.QueryArray("tags")
+	tweets, error := usecase.GetTweets(token, tags)
 	log.Println(tweets)
+
 	if error != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{})
 		ctx.Abort()
@@ -27,14 +29,15 @@ func GetMyTweets(ctx *gin.Context) {
 
 func PostTweet(ctx *gin.Context) {
 	token := ctx.MustGet("token").(*auth.Token)
-	var body Content
+	log.Printf("post tweet")
+	var body Body
 	if err := ctx.BindJSON(&body); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{})
 		ctx.Abort()
 		return
 	}
 
-	tweet, error := usecase.PostTweet(token, body.Text)
+	tweet, error := usecase.PostTweet(token, body.Text, body.Tags)
 	if error != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{})
 		ctx.Abort()
