@@ -36,11 +36,11 @@ func PostMe(token *auth.Token) (model.User, error) {
 func GetMe(token *auth.Token) (model.User, error) {
 	var userInfo model.User
 
-	err := db.QueryRow("select id, email from users where id = ?", token.UID).Scan(&userInfo.ID, &userInfo.Email)
+	err := db.QueryRow("select id, name, email, bio, image from user where id = ?", token.UID).Scan(&userInfo.ID, &userInfo.Name, &userInfo.Email, &userInfo.Bio, &userInfo.Image)
 
 	if err != nil {
+		log.Println(err.Error())
 		return userInfo, err
 	}
-	log.Println(userInfo)
 	return userInfo, err
 }

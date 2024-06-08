@@ -35,7 +35,7 @@ func StartServer() {
 		v1.POST("me", PostMe)
 		v1.GET("tweet", GetTweets)
 		v1.POST("tweet", PostTweet)
-		//v1.GET("users/:id/tweets")
+		//v1.GET("tags", GetTags)
 	}
 	router.Run(":8080")
 }

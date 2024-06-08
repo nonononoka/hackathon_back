@@ -8,5 +8,5 @@ type User struct {
 	Name      string         `json:"name"`
 	Bio       sql.NullString `json:"bio"`
 	Image     sql.NullString `json:"image"`
-	CreatedAt string         `json:"created_at"`
+	CreatedAt string         `json:"createdAt"`
 }

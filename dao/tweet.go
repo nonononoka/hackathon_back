@@ -7,6 +7,7 @@ import (
 	"log"
 )
 
+// tagを含むtweetをgetする。
 func GetTweets(token *auth.Token, tags []string) ([]model.Tweet, error) {
 	tweets := make([]model.Tweet, 0)
 	log.Printf("GetTweets: %v", tags, len(tags) == 0)
@@ -38,6 +39,12 @@ func GetTweets(token *auth.Token, tags []string) ([]model.Tweet, error) {
 				t.Tags = append(t.Tags, tag)
 			}
 			if err := tagRows.Close(); err != nil {
+				log.Printf(err.Error())
+				return tweets, err
+			}
+
+			err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedBy)
+			if err != nil {
 				log.Printf(err.Error())
 				return tweets, err
 			}
@@ -83,7 +90,11 @@ func GetTweets(token *auth.Token, tags []string) ([]model.Tweet, error) {
 				if err := tagRows.Close(); err != nil {
 					return tweets, err
 				}
-
+				err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedBy)
+				if err != nil {
+					log.Printf(err.Error())
+					return tweets, err
+				}
 				tweets = append(tweets, t)
 			}
 			if err := rows.Close(); err != nil {
@@ -95,6 +106,7 @@ func GetTweets(token *auth.Token, tags []string) ([]model.Tweet, error) {
 	return tweets, nil
 }
 
+// tagをつけてツイートをpostする。
 func PostTweet(token *auth.Token, body string, tags []string) (model.Tweet, error) {
 	var tweet model.Tweet
 
@@ -141,6 +153,11 @@ func PostTweet(token *auth.Token, body string, tags []string) (model.Tweet, erro
 	}
 	err = db.QueryRow("select id, body, posted_by, posted_at, reply_to, like_count from tweet where id = ?", tweetId).Scan(&tweet.ID, &tweet.Body, &tweet.PostedBy, &tweet.PostedAt, &tweet.ReplyTo, &tweet.LikeCount)
 
+	err = db.QueryRow("SELECT name FROM user WHERE id = ?", tweet.PostedBy).Scan(&tweet.PostedBy)
+	if err != nil {
+		log.Printf(err.Error())
+		return tweet, err
+	}
 	tweet.Tags = tags
 	return tweet, nil
 }
