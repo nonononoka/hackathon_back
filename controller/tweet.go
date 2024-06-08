@@ -14,9 +14,8 @@ type Body struct {
 }
 
 func GetTweets(ctx *gin.Context) {
-	token := ctx.MustGet("token").(*auth.Token)
 	tags := ctx.QueryArray("tags")
-	tweets, error := usecase.GetTweets(token, tags)
+	tweets, error := usecase.GetTweets(tags)
 	log.Println(tweets)
 
 	if error != nil {

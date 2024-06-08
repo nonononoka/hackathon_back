@@ -8,7 +8,7 @@ import (
 )
 
 // tagを含むtweetをgetする。
-func GetTweets(token *auth.Token, tags []string) ([]model.Tweet, error) {
+func GetTweets(tags []string) ([]model.Tweet, error) {
 	tweets := make([]model.Tweet, 0)
 	log.Printf("GetTweets: %v", tags, len(tags) == 0)
 	if len(tags) == 0 {
