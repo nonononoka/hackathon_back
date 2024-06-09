@@ -33,9 +33,23 @@ func StartServer() {
 	{
 		v1.GET("me", GetMe)
 		v1.POST("me", PostMe)
-		v1.GET("tweet", GetTweets)
+		v1.GET("tweets", GetTweets)
 		v1.POST("tweet", PostTweet)
 		v1.GET("tags", GetTags)
+		// 特定のuserのツイートを取得
+		v1.GET("users/:id/tweets", GetUserTweets)
+		// 全部のuserを取得
+		v1.GET("users", GetUsers)
+		// :idのuserをフォロー follow/:idで良さそう
+		v1.POST("friendships/:id/follow", FollowUser)
+		// フォローしてるuserを取得 follow-usersで良さそう
+		v1.GET("friendships/follow", GetFollowingUser)
+		// フォローしてるuserのツイート一覧 follow-users/tweetsで良さそう
+		v1.GET("friendships/tweets", GetFollowingUserTweets)
+		// 特定ツイートのいいね
+		//v1.POST("likes/:id/", PostLikes)
+		//// 特定userがいいねしてるツイートを取得する
+		//v1.GET("users/:id/likes-tweets", GetLikeTweets)
 	}
 	router.Run(":8080")
 }

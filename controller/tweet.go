@@ -45,3 +45,30 @@ func PostTweet(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, tweet)
 }
+
+func GetUserTweets(ctx *gin.Context) {
+	tags := ctx.QueryArray("tags")
+	userID := ctx.Param("id")
+	tweets, error := usecase.GetUserTweets(userID, tags)
+	log.Println(tweets)
+
+	if error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{})
+		ctx.Abort()
+		return
+	}
+	ctx.JSON(http.StatusOK, tweets)
+}
+
+func GetFollowingUserTweets(ctx *gin.Context) {
+	tags := ctx.QueryArray("tags")
+	token := ctx.MustGet("token").(*auth.Token)
+	tweets, error := usecase.GetFollowingUserTweets(token, tags)
+
+	if error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{})
+		ctx.Abort()
+		return
+	}
+	ctx.JSON(http.StatusOK, tweets)
+}

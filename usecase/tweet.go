@@ -24,3 +24,21 @@ func PostTweet(token *auth.Token, body string, tags []string) (model.Tweet, erro
 	}
 	return tweet, err
 }
+
+func GetUserTweets(userID string, tags []string) ([]model.Tweet, error) {
+	tweets, err := dao.GetUserTweets(userID, tags)
+
+	if err != nil {
+		log.Println("an error occurred at usecase/tweets")
+	}
+	return tweets, err
+}
+
+func GetFollowingUserTweets(token *auth.Token, tags []string) ([]model.Tweet, error) {
+	tweets, err := dao.GetFollowingUserTweets(token, tags)
+
+	if err != nil {
+		log.Println("an error occurred at usecase/tweets")
+	}
+	return tweets, err
+}

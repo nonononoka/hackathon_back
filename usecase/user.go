@@ -24,3 +24,11 @@ func PostMe(token *auth.Token) (model.User, error) {
 	}
 	return userInfo, err
 }
+
+func GetUsers() ([]model.User, error) {
+	userInfos, err := dao.GetUsers()
+	if err != nil {
+		log.Println("an error occurred at usecase/user")
+	}
+	return userInfos, err
+}

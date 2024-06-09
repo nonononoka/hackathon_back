@@ -28,6 +28,7 @@ func PostMe(token *auth.Token) (model.User, error) {
 	}
 	err = db.QueryRow("select id, name, email, bio, image from user where id = ?", token.UID).Scan(&userInfo.ID, &userInfo.Name, &userInfo.Email, &userInfo.Bio, &userInfo.Image)
 	if err != nil {
+		log.Printf("fail: db.QueryRow, %v\n", err)
 		return userInfo, err
 	}
 	return userInfo, nil
@@ -43,4 +44,28 @@ func GetMe(token *auth.Token) (model.User, error) {
 		return userInfo, err
 	}
 	return userInfo, err
+}
+
+func GetUsers() ([]model.User, error) {
+	userInfos := make([]model.User, 0)
+
+	rows, err := db.Query("select id, name, email, bio, image from user;")
+	if err != nil {
+		log.Printf(err.Error())
+		return userInfos, err
+	}
+
+	for rows.Next() {
+		var u model.User
+		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Bio, &u.Image); err != nil {
+			log.Printf(err.Error())
+			return userInfos, err
+		}
+		userInfos = append(userInfos, u)
+	}
+	if err := rows.Close(); err != nil {
+		log.Printf(err.Error())
+		return userInfos, err
+	}
+	return userInfos, nil
 }

@@ -39,3 +39,19 @@ func PostMe(ctx *gin.Context) {
 	log.Println(userInfo)
 	ctx.JSON(http.StatusCreated, userInfo)
 }
+
+func GetUsers(ctx *gin.Context) {
+	userInfo, error := usecase.GetUsers()
+	log.Println(userInfo)
+	if error != nil {
+		if error == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, gin.H{"message": "User not found"})
+			ctx.Abort()
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{})
+		ctx.Abort()
+		return
+	}
+	ctx.JSON(http.StatusOK, userInfo)
+}

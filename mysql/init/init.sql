@@ -19,7 +19,7 @@ create table tweet (
 create table likes (
                        id char(26) not null primary key,
                        tweet_id char(26) not null,
-                       user_id char(26) not null
+                       user_id char(128) not null
 );
 
 create table tag (
@@ -29,8 +29,8 @@ create table tag (
 
 create table follow(
                        id char(26) not null primary key,
-                       follower_id char(26) not null,
-                       followee_id char(26) not null,
+                       follower_id char(128) not null,
+                       followee_id char(128) not null,
                        created_at timestamp not null default current_timestamp
 );
 
