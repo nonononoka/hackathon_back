@@ -31,7 +31,7 @@ func StartServer() {
 	}))
 
 	v1 := router.Group("twitter/api/v1")
-	//v1.Use(authMiddleware())
+	v1.Use(authMiddleware())
 	{
 		v1.GET("hello", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"message": "hello"}) })
 		v1.GET("me", GetMe)

@@ -13,8 +13,17 @@ import (
 
 func authMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		env := os.Getenv("ENV")
 		log.Printf("authMiddleware")
-		opt := option.WithCredentialsFile(os.Getenv("GOOGLE_CREDENTIALS_JSON"))
+		var opt option.ClientOption
+
+		if env == "prod" {
+			// 本番環境
+			opt = option.WithCredentialsFile(os.Getenv("GOOGLE_CREDENTIALS_JSON"))
+		} else {
+			// local環境
+			opt = option.WithCredentialsFile(os.Getenv("GOOGLE_CREDENTIALS_JSON"))
+		}
 
 		app, err := firebase.NewApp(context.Background(), nil, opt)
 		if err != nil {
