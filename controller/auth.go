@@ -14,6 +14,11 @@ import (
 
 func authMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		if ctx.Request.URL.Path == "/hello" {
+			ctx.JSON(http.StatusOK, "Hello World!")
+			ctx.Abort()
+			return
+		}
 		env := os.Getenv("ENV")
 		log.Printf("authMiddleware")
 		var opt option.ClientOption
