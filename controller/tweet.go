@@ -46,6 +46,25 @@ func PostTweet(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, tweet)
 }
 
+func PostReply(ctx *gin.Context) {
+	token := ctx.MustGet("token").(*auth.Token)
+	tweetID := ctx.Param("id") // replyするツイート
+	var body Body
+	if err := ctx.BindJSON(&body); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{})
+		ctx.Abort()
+		return
+	}
+
+	tweet, error := usecase.PostReply(token, body.Text, tweetID)
+	if error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{})
+		ctx.Abort()
+		return
+	}
+	ctx.JSON(http.StatusOK, tweet)
+}
+
 func GetUserTweets(ctx *gin.Context) {
 	tags := ctx.QueryArray("tags")
 	userID := ctx.Param("id")

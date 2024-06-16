@@ -173,6 +173,50 @@ func PostTweet(token *auth.Token, body string, tags []string) (model.Tweet, erro
 	return tweet, nil
 }
 
+// tagをつけてツイートをpostする。
+func PostReply(token *auth.Token, body string, repliedTweetID string) (model.Tweet, error) {
+	var tweet model.Tweet
+
+	tx, err := db.Begin()
+	if err != nil {
+		log.Printf("fail: db.Begin, %v\n", err)
+		return tweet, err
+	}
+
+	// insert tweet into tweet table
+	tweetId := ulid.Make().String()
+	log.Println(tweetId, body, token.UID)
+	result, err := tx.Exec("INSERT INTO tweet (id, body, posted_by, reply_to) VALUES(?, ?, ?, ?)", tweetId, body, token.UID, repliedTweetID)
+	log.Println(result)
+	if err != nil {
+		log.Printf("fail: tx.Exec, %v\n", err)
+		tx.Rollback()
+		return tweet, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		log.Printf("fail: tx.Commit, %v\n", err)
+		return tweet, err
+	}
+
+	err = db.QueryRow("select id, body, posted_by, posted_at, reply_to, like_count from tweet where id = ?", tweetId).Scan(&tweet.ID, &tweet.Body, &tweet.PostedBy, &tweet.PostedAt, &tweet.ReplyTo, &tweet.LikeCount)
+	if err != nil {
+		log.Printf(err.Error())
+		return tweet, err
+	}
+
+	err = db.QueryRow("SELECT name FROM user WHERE id = ?", tweet.PostedBy).Scan(&tweet.PostedBy)
+	if err != nil {
+		log.Printf(err.Error())
+		return tweet, err
+	}
+	tweet.Tags = []string{}
+
+	return tweet, nil
+}
+
 // tagを含む特定userのツイートを取得する。
 func GetUserTweets(userID string, tags []string) ([]model.Tweet, error) {
 	tweets := make([]model.Tweet, 0)

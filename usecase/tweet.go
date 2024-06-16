@@ -25,6 +25,15 @@ func PostTweet(token *auth.Token, body string, tags []string) (model.Tweet, erro
 	return tweet, err
 }
 
+func PostReply(token *auth.Token, body string, tweetID string) (model.Tweet, error) {
+	tweet, err := dao.PostReply(token, body, tweetID)
+
+	if err != nil {
+		log.Println("an error occurred at usecase/tweets")
+	}
+	return tweet, err
+}
+
 func GetUserTweets(userID string, tags []string) ([]model.Tweet, error) {
 	tweets, err := dao.GetUserTweets(userID, tags)
 
