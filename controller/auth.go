@@ -4,6 +4,7 @@ import (
 	"context"
 	firebase "firebase.google.com/go"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"log"
 	"net/http"
@@ -19,7 +20,12 @@ func authMiddleware() gin.HandlerFunc {
 
 		if env == "prod" {
 			// 本番環境
-			opt = option.WithCredentialsFile(os.Getenv("GOOGLE_CREDENTIALS_JSON"))
+			credentials, err := google.CredentialsFromJSON(ctx, []byte(os.Getenv("GOOGLE_CREDENTIALS_JSON")))
+			if err != nil {
+				log.Printf("error initializing app: %v\n", err)
+				os.Exit(1)
+			}
+			opt = option.WithCredentials(credentials)
 		} else {
 			// local環境
 			opt = option.WithCredentialsFile(os.Getenv("GOOGLE_CREDENTIALS_JSON"))
