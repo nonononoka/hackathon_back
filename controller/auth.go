@@ -26,7 +26,7 @@ func authMiddleware() gin.HandlerFunc {
 			// 本番環境
 			credentials, err := google.CredentialsFromJSON(ctx, []byte(os.Getenv("GOOGLE_CREDENTIALS_JSON")))
 			if err != nil {
-				log.Printf("error initializing app: %v\n", err)
+				log.Printf("error initializing app29: %v\n", err)
 				os.Exit(1)
 			}
 			opt = option.WithCredentials(credentials)
@@ -37,12 +37,12 @@ func authMiddleware() gin.HandlerFunc {
 
 		app, err := firebase.NewApp(context.Background(), nil, opt)
 		if err != nil {
-			log.Printf("error initializing app: %v\n", err)
+			log.Printf("error initializing app40: %v\n", err)
 			os.Exit(1)
 		}
 		auth, err := app.Auth(ctx)
 		if err != nil {
-			log.Printf("error initializing auth: %v\n", err)
+			log.Printf("error initializing auth45: %v\n", err)
 			os.Exit(1)
 		}
 
