@@ -26,6 +26,7 @@ func authMiddleware() gin.HandlerFunc {
 			// 本番環境
 			credentials, err := google.CredentialsFromJSON(ctx, []byte(os.Getenv("GOOGLE_CREDENTIALS_JSON")))
 			if err != nil {
+				log.Println("credentials", credentials)
 				log.Printf("error initializing app29: %v\n", err)
 				os.Exit(1)
 			}
