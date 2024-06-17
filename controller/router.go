@@ -24,6 +24,7 @@ func StartServer() {
 		AllowHeaders: []string{
 			"Authorization",
 			"Content-Type",
+			"Access-Control-Allow-Origin",
 		},
 	}))
 
