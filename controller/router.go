@@ -16,7 +16,7 @@ func StartServer() {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
 			"http://localhost:3000",
-			"https://tech-tweet-rismbo39k-nonononokas-projects.vercel.app",
+			"https://tech-tweet-8klpt0ebs-nonononokas-projects.vercel.app",
 		},
 		AllowMethods: []string{
 			"GET",
