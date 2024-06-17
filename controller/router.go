@@ -13,22 +13,10 @@ type Todo struct {
 
 func StartServer() {
 	router := gin.Default()
-	router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"http://localhost:3000", "https://tech-tweet.vercel.app"},
-		AllowMethods: []string{
-			"GET",
-			"POST",
-			"DELETE",
-			"PUT",
-		},
-		AllowHeaders: []string{
-			"Authorization",
-			"Content-Type",
-			"Access-Control-Allow-Origin",
-			"X-Requested-With", "Origin", "X-Csrftoken",
-			"Accept",
-		},
-	}))
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{"http://localhost:3000", "https://tech-tweet.vercel.app"}
+	corsConfig.AddAllowHeaders("Authorization")
+	router.Use(cors.New(corsConfig))
 
 	v1 := router.Group("twitter/api/v1")
 	v1.Use(authMiddleware())
