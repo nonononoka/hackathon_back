@@ -12,12 +12,9 @@ import (
 var db *sql.DB
 
 func init() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	godotenv.Load()
 	env := os.Getenv("ENV")
-	if env == "production" {
+	if env == "prod" {
 		mysqlUser := os.Getenv("MYSQL_USER")
 		mysqlPwd := os.Getenv("MYSQL_PWD")
 		mysqlHost := os.Getenv("MYSQL_HOST")
