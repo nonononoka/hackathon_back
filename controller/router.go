@@ -14,7 +14,7 @@ type Todo struct {
 func StartServer() {
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"},
+		AllowOrigins: []string{"https://tech-tweet.vercel.app"},
 		AllowMethods: []string{
 			"GET",
 			"POST",
