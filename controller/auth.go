@@ -14,9 +14,8 @@ import (
 
 func authMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		if ctx.Request.URL.Path == "/hello" {
-			ctx.JSON(http.StatusOK, "Hello World!")
-			ctx.Abort()
+		if ctx.Request.URL.Path == "/twitter/api/v1/hello" {
+			ctx.Next()
 			return
 		}
 		env := os.Getenv("ENV")
