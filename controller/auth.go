@@ -51,6 +51,7 @@ func authMiddleware() gin.HandlerFunc {
 		idToken := strings.Replace(authHandler, "Bearer ", "", 1)
 		log.Printf(idToken)
 		token, err := auth.VerifyIDToken(ctx, idToken)
+		log.Println("54", token)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"Error": err.Error(),
