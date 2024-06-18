@@ -8,8 +8,53 @@ import (
 )
 
 // tagを含むtweetをgetする。
-func GetTweets(tags []string) ([]model.Tweet, error) {
+func GetTweets(tags []string, tweetID string) ([]model.Tweet, error) {
 	tweets := make([]model.Tweet, 0)
+	// idがtweetIDのtweetを取得する。
+	if tweetID != "" {
+		rows, err := db.Query("select * from tweet where id = ?;", tweetID)
+
+		if err != nil {
+			log.Printf(err.Error())
+			return tweets, err
+		}
+		for rows.Next() {
+			var t model.Tweet
+			if err := rows.Scan(&t.ID, &t.Body, &t.PostedBy, &t.PostedAt, &t.ReplyTo, &t.LikeCount); err != nil {
+				log.Printf(err.Error())
+				return tweets, err
+			}
+
+			tagRows, err := db.Query("SELECT tag.tag "+
+				"FROM tweet  INNER JOIN tweet_tag  ON tweet.id = tweet_tag.tweet_id "+
+				"INNER JOIN tag  ON tweet_tag.tag_id = tag.id where tweet.id = ?;", t.ID)
+
+			if err != nil {
+				log.Printf(err.Error())
+				return tweets, err
+			}
+			for tagRows.Next() {
+				var tag string
+				tagRows.Scan(&tag)
+				t.Tags = append(t.Tags, tag)
+			}
+			if err := tagRows.Close(); err != nil {
+				log.Printf(err.Error())
+				return tweets, err
+			}
+			err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedByName)
+			if err != nil {
+				log.Printf(err.Error())
+				return tweets, err
+			}
+			tweets = append(tweets, t)
+		}
+		if err := rows.Close(); err != nil {
+			log.Printf(err.Error())
+			return tweets, err
+		}
+		return tweets, nil
+	}
 
 	if len(tags) == 0 {
 		rows, err := db.Query("select * from tweet;")
@@ -43,7 +88,7 @@ func GetTweets(tags []string) ([]model.Tweet, error) {
 				return tweets, err
 			}
 
-			err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedBy)
+			err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedByName)
 			if err != nil {
 				log.Printf(err.Error())
 				return tweets, err
@@ -90,7 +135,7 @@ func GetTweets(tags []string) ([]model.Tweet, error) {
 				if err := tagRows.Close(); err != nil {
 					return tweets, err
 				}
-				err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedBy)
+				err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedByName)
 				if err != nil {
 					log.Printf(err.Error())
 					return tweets, err
@@ -163,7 +208,7 @@ func PostTweet(token *auth.Token, body string, tags []string) (model.Tweet, erro
 		return tweet, err
 	}
 
-	err = db.QueryRow("SELECT name FROM user WHERE id = ?", tweet.PostedBy).Scan(&tweet.PostedBy)
+	err = db.QueryRow("SELECT name FROM user WHERE id = ?", tweet.PostedBy).Scan(&tweet.PostedByName)
 	if err != nil {
 		log.Printf(err.Error())
 		return tweet, err
@@ -207,7 +252,7 @@ func PostReply(token *auth.Token, body string, repliedTweetID string) (model.Twe
 		return tweet, err
 	}
 
-	err = db.QueryRow("SELECT name FROM user WHERE id = ?", tweet.PostedBy).Scan(&tweet.PostedBy)
+	err = db.QueryRow("SELECT name FROM user WHERE id = ?", tweet.PostedBy).Scan(&tweet.PostedByName)
 	if err != nil {
 		log.Printf(err.Error())
 		return tweet, err
@@ -253,7 +298,7 @@ func GetUserTweets(userID string, tags []string) ([]model.Tweet, error) {
 				return tweets, err
 			}
 
-			err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedBy)
+			err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedByName)
 			if err != nil {
 				log.Printf(err.Error())
 				return tweets, err
@@ -300,7 +345,7 @@ func GetUserTweets(userID string, tags []string) ([]model.Tweet, error) {
 				if err := tagRows.Close(); err != nil {
 					return tweets, err
 				}
-				err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedBy)
+				err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedByName)
 				if err != nil {
 					log.Printf(err.Error())
 					return tweets, err
@@ -351,7 +396,7 @@ func GetFollowingUserTweets(token *auth.Token, tags []string) ([]model.Tweet, er
 				return tweets, err
 			}
 
-			err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedBy)
+			err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedByName)
 			if err != nil {
 				log.Printf("312", err.Error())
 				return tweets, err
@@ -398,7 +443,7 @@ func GetFollowingUserTweets(token *auth.Token, tags []string) ([]model.Tweet, er
 				if err := tagRows.Close(); err != nil {
 					return tweets, err
 				}
-				err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedBy)
+				err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedByName)
 				if err != nil {
 					log.Printf(err.Error())
 					return tweets, err

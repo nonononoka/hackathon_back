@@ -16,7 +16,7 @@ func PostLike(token *auth.Token, tweetID string) error {
 		return err
 	}
 
-	// insert tweet into tweet table
+	// insert fav into likes table
 	likesID := ulid.Make().String()
 	_, err = tx.Exec("INSERT INTO likes (id, tweet_id, user_id) VALUES(?, ?, ?)", likesID, tweetID, token.UID)
 
@@ -26,6 +26,14 @@ func PostLike(token *auth.Token, tweetID string) error {
 		return err
 	}
 
+	// add tweet table's likes
+	_, err = tx.Exec("UPDATE tweet SET like_count = like_count + 1 WHERE id = ?", tweetID)
+
+	if err != nil {
+		log.Printf("fail: tx.Exec, %v\n", err)
+		tx.Rollback()
+		return err
+	}
 	err = tx.Commit()
 	if err != nil {
 		tx.Rollback()

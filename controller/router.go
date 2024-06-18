@@ -24,6 +24,7 @@ func StartServer() {
 		v1.GET("hello", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"message": "hello"}) })
 		v1.GET("me", GetMe)
 		v1.POST("me", PostMe)
+		// /tweets/tags=?みたいな
 		v1.GET("tweets", GetTweets)
 		v1.POST("tweet", PostTweet)
 		v1.GET("tags", GetTags)

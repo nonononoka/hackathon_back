@@ -7,8 +7,8 @@ import (
 	"log"
 )
 
-func GetTweets(tags []string) ([]model.Tweet, error) {
-	tweets, err := dao.GetTweets(tags)
+func GetTweets(tags []string, id string) ([]model.Tweet, error) {
+	tweets, err := dao.GetTweets(tags, id)
 
 	if err != nil {
 		log.Println("an error occurred at usecase/tweets")

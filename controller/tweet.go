@@ -15,7 +15,8 @@ type Body struct {
 
 func GetTweets(ctx *gin.Context) {
 	tags := ctx.QueryArray("tags")
-	tweets, error := usecase.GetTweets(tags)
+	id := ctx.Query("id")
+	tweets, error := usecase.GetTweets(tags, id)
 	log.Println(tweets)
 
 	if error != nil {
@@ -28,7 +29,7 @@ func GetTweets(ctx *gin.Context) {
 
 func PostTweet(ctx *gin.Context) {
 	token := ctx.MustGet("token").(*auth.Token)
-	log.Printf("post tweet")
+
 	var body Body
 	if err := ctx.BindJSON(&body); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{})
