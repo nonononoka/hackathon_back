@@ -39,7 +39,10 @@ func StartServer() {
 		// useridのuserがフォローしてるuserのツイート一覧 /users/:userid/followees/tweets
 		v1.GET("friendships/tweets", GetFollowingUserTweets)
 		// 特定ツイートのいいね /:idのツイートをファボする。
-		v1.POST("tweets/:id/favorites", PostLike)
+		v1.POST("tweets/favorites", PostLike)
+		// これいらないかも
+		v1.GET("tweets/favorites", GetLike)
+		v1.DELETE("tweets/favorites", DeleteLike)
 		//// 特定userがいいねしてるツイートを取得する /users/:userid/tweets/favorites
 		//v1.GET("users/:id/likes-tweets", GetLikeTweets)
 		// 特定ツイートにリプライする。

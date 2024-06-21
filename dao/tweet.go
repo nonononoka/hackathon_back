@@ -2,13 +2,55 @@ package dao
 
 import (
 	"back/model"
+	"database/sql"
 	"firebase.google.com/go/auth"
 	"github.com/oklog/ulid/v2"
 	"log"
 )
 
+func returnTweets(rows *sql.Rows, userID string) ([]model.Tweet, error) {
+	tweets := make([]model.Tweet, 0)
+	for rows.Next() {
+		var t model.Tweet
+		if err := rows.Scan(&t.ID, &t.Body, &t.PostedBy, &t.PostedAt, &t.ReplyTo, &t.LikeCount); err != nil {
+			log.Printf(err.Error())
+			return tweets, err
+		}
+
+		tagRows, err := db.Query("SELECT tag.tag "+
+			"FROM tweet  INNER JOIN tweet_tag  ON tweet.id = tweet_tag.tweet_id "+
+			"INNER JOIN tag  ON tweet_tag.tag_id = tag.id where tweet.id = ?;", t.ID)
+
+		if err != nil {
+			log.Printf(err.Error())
+			return tweets, err
+		}
+		for tagRows.Next() {
+			var tag string
+			tagRows.Scan(&tag)
+			t.Tags = append(t.Tags, tag)
+		}
+		if err := tagRows.Close(); err != nil {
+			log.Printf(err.Error())
+			return tweets, err
+		}
+		err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedByName)
+		if err != nil {
+			log.Printf(err.Error())
+			return tweets, err
+		}
+		err = db.QueryRow("SELECT EXISTS (SELECT 1 FROM likes WHERE user_id = ? AND tweet_id = ?)", userID, &t.ID).Scan(&t.IsFaved)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println(t)
+		tweets = append(tweets, t)
+	}
+	return tweets, nil
+}
+
 // tagを含むtweetをgetする。
-func GetTweets(tags []string, tweetID string) ([]model.Tweet, error) {
+func GetTweets(token *auth.Token, tags []string, tweetID string) ([]model.Tweet, error) {
 	tweets := make([]model.Tweet, 0)
 	// idがtweetIDのtweetを取得する。
 	if tweetID != "" {
@@ -18,36 +60,9 @@ func GetTweets(tags []string, tweetID string) ([]model.Tweet, error) {
 			log.Printf(err.Error())
 			return tweets, err
 		}
-		for rows.Next() {
-			var t model.Tweet
-			if err := rows.Scan(&t.ID, &t.Body, &t.PostedBy, &t.PostedAt, &t.ReplyTo, &t.LikeCount); err != nil {
-				log.Printf(err.Error())
-				return tweets, err
-			}
-
-			tagRows, err := db.Query("SELECT tag.tag "+
-				"FROM tweet  INNER JOIN tweet_tag  ON tweet.id = tweet_tag.tweet_id "+
-				"INNER JOIN tag  ON tweet_tag.tag_id = tag.id where tweet.id = ?;", t.ID)
-
-			if err != nil {
-				log.Printf(err.Error())
-				return tweets, err
-			}
-			for tagRows.Next() {
-				var tag string
-				tagRows.Scan(&tag)
-				t.Tags = append(t.Tags, tag)
-			}
-			if err := tagRows.Close(); err != nil {
-				log.Printf(err.Error())
-				return tweets, err
-			}
-			err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedByName)
-			if err != nil {
-				log.Printf(err.Error())
-				return tweets, err
-			}
-			tweets = append(tweets, t)
+		tweets, err = returnTweets(rows, token.UID)
+		if err != nil {
+			return tweets, err
 		}
 		if err := rows.Close(); err != nil {
 			log.Printf(err.Error())
@@ -63,37 +78,9 @@ func GetTweets(tags []string, tweetID string) ([]model.Tweet, error) {
 			log.Printf(err.Error())
 			return tweets, err
 		}
-		for rows.Next() {
-			var t model.Tweet
-			if err := rows.Scan(&t.ID, &t.Body, &t.PostedBy, &t.PostedAt, &t.ReplyTo, &t.LikeCount); err != nil {
-				log.Printf(err.Error())
-				return tweets, err
-			}
-
-			tagRows, err := db.Query("SELECT tag.tag "+
-				"FROM tweet  INNER JOIN tweet_tag  ON tweet.id = tweet_tag.tweet_id "+
-				"INNER JOIN tag  ON tweet_tag.tag_id = tag.id where tweet.id = ?;", t.ID)
-
-			if err != nil {
-				log.Printf(err.Error())
-				return tweets, err
-			}
-			for tagRows.Next() {
-				var tag string
-				tagRows.Scan(&tag)
-				t.Tags = append(t.Tags, tag)
-			}
-			if err := tagRows.Close(); err != nil {
-				log.Printf(err.Error())
-				return tweets, err
-			}
-
-			err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedByName)
-			if err != nil {
-				log.Printf(err.Error())
-				return tweets, err
-			}
-			tweets = append(tweets, t)
+		tweets, err = returnTweets(rows, token.UID)
+		if err != nil {
+			return tweets, err
 		}
 		if err := rows.Close(); err != nil {
 			log.Printf(err.Error())
@@ -112,36 +99,12 @@ func GetTweets(tags []string, tweetID string) ([]model.Tweet, error) {
 				return tweets, err
 			}
 
-			for rows.Next() {
-				var t model.Tweet
-				if err := rows.Scan(&t.ID, &t.Body, &t.PostedBy, &t.PostedAt, &t.ReplyTo, &t.LikeCount); err != nil {
-					log.Printf("fail: rows.Scan @GetMe, %v\n", err)
-				}
-
-				// 各ツイートに含まれる全部のタグを取得する。
-				tagRows, err := db.Query("SELECT tg.tag "+
-					"FROM tweet t INNER JOIN tweet_tag tt ON t.id = tt.tweet_id "+
-					"INNER JOIN tag tg ON tt.tag_id = tg.id where t.id = ?;", t.ID)
-
-				if err != nil {
-					log.Printf(err.Error())
-					return tweets, err
-				}
-				for tagRows.Next() {
-					var tag string
-					tagRows.Scan(&tag)
-					t.Tags = append(t.Tags, tag)
-				}
-				if err := tagRows.Close(); err != nil {
-					return tweets, err
-				}
-				err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedByName)
-				if err != nil {
-					log.Printf(err.Error())
-					return tweets, err
-				}
-				tweets = append(tweets, t)
+			taggedTweets, err := returnTweets(rows, token.UID)
+			if err != nil {
+				return tweets, err
 			}
+			tweets = append(tweets, taggedTweets...)
+
 			if err := rows.Close(); err != nil {
 				return tweets, err
 			}
@@ -214,6 +177,7 @@ func PostTweet(token *auth.Token, body string, tags []string) (model.Tweet, erro
 		return tweet, err
 	}
 	tweet.Tags = tags
+	tweet.IsFaved = false
 
 	return tweet, nil
 }
@@ -258,12 +222,13 @@ func PostReply(token *auth.Token, body string, repliedTweetID string) (model.Twe
 		return tweet, err
 	}
 	tweet.Tags = []string{}
+	tweet.IsFaved = false
 
 	return tweet, nil
 }
 
 // tagを含む特定userのツイートを取得する。
-func GetUserTweets(userID string, tags []string) ([]model.Tweet, error) {
+func GetUserTweets(token *auth.Token, userID string, tags []string) ([]model.Tweet, error) {
 	tweets := make([]model.Tweet, 0)
 
 	if len(tags) == 0 {
@@ -273,37 +238,9 @@ func GetUserTweets(userID string, tags []string) ([]model.Tweet, error) {
 			log.Printf(err.Error())
 			return tweets, err
 		}
-		for rows.Next() {
-			var t model.Tweet
-			if err := rows.Scan(&t.ID, &t.Body, &t.PostedBy, &t.PostedAt, &t.ReplyTo, &t.LikeCount); err != nil {
-				log.Printf(err.Error())
-				return tweets, err
-			}
-
-			tagRows, err := db.Query("SELECT tag.tag "+
-				"FROM tweet  INNER JOIN tweet_tag  ON tweet.id = tweet_tag.tweet_id "+
-				"INNER JOIN tag  ON tweet_tag.tag_id = tag.id where tweet.id = ?;", t.ID)
-
-			if err != nil {
-				log.Printf(err.Error())
-				return tweets, err
-			}
-			for tagRows.Next() {
-				var tag string
-				tagRows.Scan(&tag)
-				t.Tags = append(t.Tags, tag)
-			}
-			if err := tagRows.Close(); err != nil {
-				log.Printf(err.Error())
-				return tweets, err
-			}
-
-			err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedByName)
-			if err != nil {
-				log.Printf(err.Error())
-				return tweets, err
-			}
-			tweets = append(tweets, t)
+		tweets, err = returnTweets(rows, token.UID)
+		if err != nil {
+			return tweets, err
 		}
 		if err := rows.Close(); err != nil {
 			log.Printf(err.Error())
@@ -322,36 +259,11 @@ func GetUserTweets(userID string, tags []string) ([]model.Tweet, error) {
 				return tweets, err
 			}
 
-			for rows.Next() {
-				var t model.Tweet
-				if err := rows.Scan(&t.ID, &t.Body, &t.PostedBy, &t.PostedAt, &t.ReplyTo, &t.LikeCount); err != nil {
-					log.Printf("fail: rows.Scan @GetMe, %v\n", err)
-				}
-
-				// 各ツイートに含まれる全部のタグを取得する。
-				tagRows, err := db.Query("SELECT tg.tag "+
-					"FROM tweet t INNER JOIN tweet_tag tt ON t.id = tt.tweet_id "+
-					"INNER JOIN tag tg ON tt.tag_id = tg.id where t.id = ?;", t.ID)
-
-				if err != nil {
-					log.Printf(err.Error())
-					return tweets, err
-				}
-				for tagRows.Next() {
-					var tag string
-					tagRows.Scan(&tag)
-					t.Tags = append(t.Tags, tag)
-				}
-				if err := tagRows.Close(); err != nil {
-					return tweets, err
-				}
-				err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedByName)
-				if err != nil {
-					log.Printf(err.Error())
-					return tweets, err
-				}
-				tweets = append(tweets, t)
+			taggedTweets, err := returnTweets(rows, token.UID)
+			if err != nil {
+				return tweets, err
 			}
+			tweets = append(tweets, taggedTweets...)
 			if err := rows.Close(); err != nil {
 				return tweets, err
 			}
@@ -371,37 +283,9 @@ func GetFollowingUserTweets(token *auth.Token, tags []string) ([]model.Tweet, er
 			log.Printf("282", err.Error())
 			return tweets, err
 		}
-		for rows.Next() {
-			var t model.Tweet
-			if err := rows.Scan(&t.ID, &t.Body, &t.PostedBy, &t.PostedAt, &t.ReplyTo, &t.LikeCount); err != nil {
-				log.Printf("288", err.Error())
-				return tweets, err
-			}
-
-			tagRows, err := db.Query("SELECT tag.tag "+
-				"FROM tweet  INNER JOIN tweet_tag  ON tweet.id = tweet_tag.tweet_id "+
-				"INNER JOIN tag  ON tweet_tag.tag_id = tag.id where tweet.id = ?;", t.ID)
-
-			if err != nil {
-				log.Printf("297", err.Error())
-				return tweets, err
-			}
-			for tagRows.Next() {
-				var tag string
-				tagRows.Scan(&tag)
-				t.Tags = append(t.Tags, tag)
-			}
-			if err := tagRows.Close(); err != nil {
-				log.Printf("306", err.Error())
-				return tweets, err
-			}
-
-			err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedByName)
-			if err != nil {
-				log.Printf("312", err.Error())
-				return tweets, err
-			}
-			tweets = append(tweets, t)
+		tweets, err = returnTweets(rows, token.UID)
+		if err != nil {
+			return tweets, err
 		}
 		if err := rows.Close(); err != nil {
 			log.Printf("318", err.Error())
@@ -420,36 +304,11 @@ func GetFollowingUserTweets(token *auth.Token, tags []string) ([]model.Tweet, er
 				return tweets, err
 			}
 
-			for rows.Next() {
-				var t model.Tweet
-				if err := rows.Scan(&t.ID, &t.Body, &t.PostedBy, &t.PostedAt, &t.ReplyTo, &t.LikeCount); err != nil {
-					log.Printf("fail: rows.Scan @GetMe, %v\n", err)
-				}
-
-				// 各ツイートに含まれる全部のタグを取得する。
-				tagRows, err := db.Query("SELECT tg.tag "+
-					"FROM tweet t INNER JOIN tweet_tag tt ON t.id = tt.tweet_id "+
-					"INNER JOIN tag tg ON tt.tag_id = tg.id where t.id = ?;", t.ID)
-
-				if err != nil {
-					log.Printf(err.Error())
-					return tweets, err
-				}
-				for tagRows.Next() {
-					var tag string
-					tagRows.Scan(&tag)
-					t.Tags = append(t.Tags, tag)
-				}
-				if err := tagRows.Close(); err != nil {
-					return tweets, err
-				}
-				err = db.QueryRow("SELECT name FROM user WHERE id = ?", t.PostedBy).Scan(&t.PostedByName)
-				if err != nil {
-					log.Printf(err.Error())
-					return tweets, err
-				}
-				tweets = append(tweets, t)
+			taggedTweets, err := returnTweets(rows, token.UID)
+			if err != nil {
+				return tweets, err
 			}
+			tweets = append(tweets, taggedTweets...)
 			if err := rows.Close(); err != nil {
 				return tweets, err
 			}

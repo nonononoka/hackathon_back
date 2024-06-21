@@ -14,9 +14,10 @@ type Body struct {
 }
 
 func GetTweets(ctx *gin.Context) {
+	token := ctx.MustGet("token").(*auth.Token)
 	tags := ctx.QueryArray("tags")
 	id := ctx.Query("id")
-	tweets, error := usecase.GetTweets(tags, id)
+	tweets, error := usecase.GetTweets(token, tags, id)
 	log.Println(tweets)
 
 	if error != nil {
@@ -67,9 +68,10 @@ func PostReply(ctx *gin.Context) {
 }
 
 func GetUserTweets(ctx *gin.Context) {
+	token := ctx.MustGet("token").(*auth.Token)
 	tags := ctx.QueryArray("tags")
 	userID := ctx.Param("id")
-	tweets, error := usecase.GetUserTweets(userID, tags)
+	tweets, error := usecase.GetUserTweets(token, userID, tags)
 	log.Println(tweets)
 
 	if error != nil {
