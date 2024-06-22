@@ -8,7 +8,7 @@ import (
 )
 
 func FollowUser(ctx *gin.Context) {
-	userID := ctx.Param("id")
+	userID := ctx.Query("id")
 	token := ctx.MustGet("token").(*auth.Token)
 	followingUser, error := usecase.FollowUser(token, userID)
 
@@ -18,6 +18,19 @@ func FollowUser(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, followingUser)
+}
+
+func UnfollowUser(ctx *gin.Context) {
+	userID := ctx.Query("id")
+	token := ctx.MustGet("token").(*auth.Token)
+	error := usecase.UnfollowUser(token, userID)
+
+	if error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{})
+		ctx.Abort()
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{})
 }
 
 func GetFollowingUser(ctx *gin.Context) {
@@ -30,4 +43,16 @@ func GetFollowingUser(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, followingUsers)
+}
+
+func GetFollowedUser(ctx *gin.Context) {
+	token := ctx.MustGet("token").(*auth.Token)
+	followedUsers, error := usecase.GetFollowedUsers(token)
+
+	if error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{})
+		ctx.Abort()
+		return
+	}
+	ctx.JSON(http.StatusOK, followedUsers)
 }

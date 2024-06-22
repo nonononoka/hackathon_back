@@ -9,4 +9,8 @@ type User struct {
 	Bio       sql.NullString `json:"bio"`
 	Image     sql.NullString `json:"image"`
 	CreatedAt string         `json:"createdAt"`
+	// userが今followしてるか
+	IsFollowing bool `json:"isFollowing"`
+	// userが今followされてるか
+	IsFollowed bool `json:"isFollowed"`
 }

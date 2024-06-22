@@ -25,8 +25,17 @@ func PostMe(token *auth.Token) (model.User, error) {
 	return userInfo, err
 }
 
-func GetUsers() ([]model.User, error) {
-	userInfos, err := dao.GetUsers()
+func PutMe(token *auth.Token, name string, bio string, image string) (model.User, error) {
+	userInfo, err := dao.PutMe(token, name, bio, image)
+
+	if err != nil {
+		log.Println("an error occurred at usecase/user", err)
+	}
+	return userInfo, err
+}
+
+func GetUsers(token *auth.Token) ([]model.User, error) {
+	userInfos, err := dao.GetUsers(token)
 	if err != nil {
 		log.Println("an error occurred at usecase/user")
 	}

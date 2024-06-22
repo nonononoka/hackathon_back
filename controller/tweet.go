@@ -58,7 +58,7 @@ func PostReply(ctx *gin.Context) {
 		return
 	}
 
-	tweet, error := usecase.PostReply(token, body.Text, tweetID)
+	tweet, error := usecase.PostReply(token, body.Text, body.Tags, tweetID)
 	if error != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{})
 		ctx.Abort()
@@ -93,4 +93,18 @@ func GetFollowingUserTweets(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, tweets)
+}
+
+// // idのツイートの一連のツイートを返す。
+func GetThreadTweets(ctx *gin.Context) {
+	tweetID := ctx.Param("id")
+	token := ctx.MustGet("token").(*auth.Token)
+	threads, error := usecase.GetThreadTweets(token, tweetID)
+
+	if error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{})
+		ctx.Abort()
+		return
+	}
+	ctx.JSON(http.StatusOK, threads)
 }

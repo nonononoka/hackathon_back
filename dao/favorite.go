@@ -8,10 +8,10 @@ import (
 )
 
 // ユーザーがいいねしてるツイート全部持ってくる
-func GetLike(token *auth.Token) ([]model.Tweet, error) {
+func GetFavorites(token *auth.Token) ([]model.Tweet, error) {
 	tweets := make([]model.Tweet, 0)
 	// idがtweetIDのtweetを取得する。
-	rows, err := db.Query("SELECT tweet.* FROM tweet JOIN likes ON tweet.id = likes.tweet_id WHERE likes.user_id = ?;", token.UID)
+	rows, err := db.Query("SELECT tweet.* FROM tweet JOIN favorite ON tweet.id = favorite.tweet_id WHERE favorite.user_id = ?;", token.UID)
 
 	if err != nil {
 		log.Printf(err.Error())
@@ -27,7 +27,7 @@ func GetLike(token *auth.Token) ([]model.Tweet, error) {
 	return tweets, nil
 }
 
-func PostLike(token *auth.Token, tweetID string) error {
+func PostFavorites(token *auth.Token, tweetID string) error {
 	tx, err := db.Begin()
 	if err != nil {
 		log.Printf("fail: db.Begin, %v\n", err)
@@ -35,8 +35,8 @@ func PostLike(token *auth.Token, tweetID string) error {
 	}
 
 	// insert fav into likes table
-	likesID := ulid.Make().String()
-	_, err = tx.Exec("INSERT INTO likes (id, tweet_id, user_id) VALUES(?, ?, ?)", likesID, tweetID, token.UID)
+	favID := ulid.Make().String()
+	_, err = tx.Exec("INSERT INTO favorite (id, tweet_id, user_id) VALUES(?, ?, ?)", favID, tweetID, token.UID)
 
 	if err != nil {
 		log.Printf("fail: tx.Exec, %v\n", err)
@@ -62,14 +62,14 @@ func PostLike(token *auth.Token, tweetID string) error {
 	return nil
 }
 
-func DeleteLike(token *auth.Token, tweetID string) error {
+func DeleteFavorites(token *auth.Token, tweetID string) error {
 	tx, err := db.Begin()
 	if err != nil {
 		log.Printf("fail: db.Begin, %v\n", err)
 		return err
 	}
 
-	_, err = tx.Exec("DELETE FROM likes WHERE user_id = ? AND tweet_id = ?", token.UID, tweetID)
+	_, err = tx.Exec("DELETE FROM favorite WHERE user_id = ? AND tweet_id = ?", token.UID, tweetID)
 
 	if err != nil {
 		log.Printf("fail: tx.Exec, %v\n", err)

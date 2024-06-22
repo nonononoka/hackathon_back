@@ -13,10 +13,12 @@ create table tweet (
                        posted_by varchar(128) not null,
                        posted_at timestamp not null default current_timestamp,
                        reply_to char(26) default null,
-                       like_count int not null default 0
+                       like_count int not null default 0,
+                       reply_count int not null default 0,
+                       thread_id char(26) not null
 );
 
-create table likes (
+create table favorite (
                        id char(26) not null primary key,
                        tweet_id char(26) not null,
                        user_id char(128) not null

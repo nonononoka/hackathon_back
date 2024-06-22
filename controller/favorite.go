@@ -7,11 +7,11 @@ import (
 	"net/http"
 )
 
-func PostLike(ctx *gin.Context) {
+func PostFavorites(ctx *gin.Context) {
 	tweetID := ctx.Query("id")
 	token := ctx.MustGet("token").(*auth.Token)
 
-	error := usecase.PostLike(token, tweetID)
+	error := usecase.PostFavorites(token, tweetID)
 	if error != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{})
 		ctx.Abort()
@@ -22,10 +22,10 @@ func PostLike(ctx *gin.Context) {
 }
 
 // ユーザーがlikeしてるツイート全部持ってくる
-func GetLike(ctx *gin.Context) {
+func GetFavorites(ctx *gin.Context) {
 	token := ctx.MustGet("token").(*auth.Token)
 
-	tweets, error := usecase.GetLike(token)
+	tweets, error := usecase.GetFavorites(token)
 	if error != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{})
 		ctx.Abort()
@@ -35,11 +35,11 @@ func GetLike(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, tweets)
 }
 
-func DeleteLike(ctx *gin.Context) {
+func DeleteFavorites(ctx *gin.Context) {
 	tweetID := ctx.Query("id")
 	token := ctx.MustGet("token").(*auth.Token)
 
-	error := usecase.DeleteLike(token, tweetID)
+	error := usecase.DeleteFavorites(token, tweetID)
 	if error != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{})
 		ctx.Abort()

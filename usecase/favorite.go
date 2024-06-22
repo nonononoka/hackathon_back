@@ -7,8 +7,8 @@ import (
 	"log"
 )
 
-func PostLike(token *auth.Token, tweetID string) error {
-	err := dao.PostLike(token, tweetID)
+func PostFavorites(token *auth.Token, tweetID string) error {
+	err := dao.PostFavorites(token, tweetID)
 
 	if err != nil {
 		log.Println("an error occurred at usecase/likes")
@@ -16,8 +16,8 @@ func PostLike(token *auth.Token, tweetID string) error {
 	return err
 }
 
-func GetLike(token *auth.Token) ([]model.Tweet, error) {
-	tweets, err := dao.GetLike(token)
+func GetFavorites(token *auth.Token) ([]model.Tweet, error) {
+	tweets, err := dao.GetFavorites(token)
 
 	if err != nil {
 		log.Println("an error occurred at usecase/likes")
@@ -25,8 +25,8 @@ func GetLike(token *auth.Token) ([]model.Tweet, error) {
 	return tweets, err
 }
 
-func DeleteLike(token *auth.Token, tweetID string) error {
-	err := dao.DeleteLike(token, tweetID)
+func DeleteFavorites(token *auth.Token, tweetID string) error {
+	err := dao.DeleteFavorites(token, tweetID)
 
 	if err != nil {
 		log.Println("an error occurred at usecase/likes")
