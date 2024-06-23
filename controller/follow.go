@@ -33,9 +33,9 @@ func UnfollowUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{})
 }
 
-func GetFollowingUser(ctx *gin.Context) {
+func GetMeFollowingUsers(ctx *gin.Context) {
 	token := ctx.MustGet("token").(*auth.Token)
-	followingUsers, error := usecase.GetFollowingUsers(token)
+	followingUsers, error := usecase.GetMeFollowingUsers(token)
 
 	if error != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{})
@@ -45,9 +45,9 @@ func GetFollowingUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, followingUsers)
 }
 
-func GetFollowedUser(ctx *gin.Context) {
+func GetMeFollowedUsers(ctx *gin.Context) {
 	token := ctx.MustGet("token").(*auth.Token)
-	followedUsers, error := usecase.GetFollowedUsers(token)
+	followedUsers, error := usecase.GetMeFollowedUsers(token)
 
 	if error != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{})
@@ -55,4 +55,30 @@ func GetFollowedUser(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, followedUsers)
+}
+
+func GetFollowedUsers(ctx *gin.Context) {
+	userID := ctx.Param("id")
+	token := ctx.MustGet("token").(*auth.Token)
+	followedUsers, error := usecase.GetFollowedUsers(token, userID)
+
+	if error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{})
+		ctx.Abort()
+		return
+	}
+	ctx.JSON(http.StatusOK, followedUsers)
+}
+
+func GetFollowingUsers(ctx *gin.Context) {
+	userID := ctx.Param("id")
+	token := ctx.MustGet("token").(*auth.Token)
+	followingUsers, error := usecase.GetFollowingUsers(token, userID)
+
+	if error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{})
+		ctx.Abort()
+		return
+	}
+	ctx.JSON(http.StatusOK, followingUsers)
 }

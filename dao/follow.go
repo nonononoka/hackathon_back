@@ -70,7 +70,7 @@ func UnfollowUser(token *auth.Token, userID string) error {
 	return nil
 }
 
-func GetFollowingUsers(token *auth.Token) ([]model.User, error) {
+func GetMeFollowingUsers(token *auth.Token) ([]model.User, error) {
 	var followingUsers []model.User
 
 	rows, err := db.Query("SELECT u.id, u.name, u.email, u.bio, u.image "+
@@ -106,12 +106,83 @@ func GetFollowingUsers(token *auth.Token) ([]model.User, error) {
 }
 
 // 自分をフォローしてるユーザーたち
-func GetFollowedUsers(token *auth.Token) ([]model.User, error) {
+func GetMeFollowedUsers(token *auth.Token) ([]model.User, error) {
 	var followedUsers []model.User
 
 	rows, err := db.Query("SELECT u.id, u.name, u.email, u.bio, u.image "+
 		"FROM user u JOIN follow f ON u.id = f.follower_id "+
 		"where f.followee_id = ?;", token.UID)
+
+	if err != nil {
+		log.Printf("fail: db.Query, %v\n", err)
+		return followedUsers, err
+	}
+
+	for rows.Next() {
+		var u model.User
+		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Bio, &u.Image); err != nil {
+			log.Printf(err.Error())
+			return followedUsers, err
+		}
+		following, followed, err := checkFollow(token.UID, u.ID)
+		if err != nil {
+			return followedUsers, err
+		}
+		// uにフォローされているか
+		u.IsFollowed = followed
+		// uをフォローしているか
+		u.IsFollowing = following
+		followedUsers = append(followedUsers, u)
+	}
+	if err := rows.Close(); err != nil {
+		log.Printf(err.Error())
+		return followedUsers, err
+	}
+	return followedUsers, nil
+}
+
+func GetFollowingUsers(token *auth.Token, userID string) ([]model.User, error) {
+	var followingUsers []model.User
+
+	rows, err := db.Query("SELECT u.id, u.name, u.email, u.bio, u.image "+
+		"FROM user u JOIN follow f ON u.id = f.followee_id "+
+		"where f.follower_id = ?;", userID)
+
+	if err != nil {
+		log.Printf("fail: db.Query, %v\n", err)
+		return followingUsers, err
+	}
+
+	for rows.Next() {
+		var u model.User
+		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Bio, &u.Image); err != nil {
+			log.Printf(err.Error())
+			return followingUsers, err
+		}
+		following, followed, err := checkFollow(token.UID, u.ID)
+		if err != nil {
+			return followingUsers, err
+		}
+		// uにフォローされているか
+		u.IsFollowed = followed
+		// uをフォローしているか
+		u.IsFollowing = following
+		followingUsers = append(followingUsers, u)
+	}
+	if err := rows.Close(); err != nil {
+		log.Printf(err.Error())
+		return followingUsers, err
+	}
+	return followingUsers, nil
+}
+
+// 自分をフォローしてるユーザーたち
+func GetFollowedUsers(token *auth.Token, userID string) ([]model.User, error) {
+	var followedUsers []model.User
+
+	rows, err := db.Query("SELECT u.id, u.name, u.email, u.bio, u.image "+
+		"FROM user u JOIN follow f ON u.id = f.follower_id "+
+		"where f.followee_id = ?;", userID)
 
 	if err != nil {
 		log.Printf("fail: db.Query, %v\n", err)

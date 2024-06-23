@@ -51,9 +51,13 @@ func StartServer() {
 		v1.POST("users/me/following", FollowUser)
 		v1.DELETE("users/me/following", UnfollowUser)
 		// 自分がフォローしてるユーザー全部
-		v1.GET("users/me/following", GetFollowingUser)
+		v1.GET("users/me/following", GetMeFollowingUsers)
 		// 自分を、フォローしてるユーザー全部
-		v1.GET("users/me/followed", GetFollowedUser)
+		v1.GET("users/me/followed", GetMeFollowedUsers)
+		// idを持つユーザーがフォローしてる人たち
+		v1.GET("users/:id/following", GetFollowingUsers)
+		// idを持つユーザーをフォローしてる人たち
+		v1.GET("users/:id/followed", GetFollowedUsers)
 		// useridのuserがフォローしてるuserのツイート一覧 /users/:userid/followees/tweets
 		v1.GET("tweets/following", GetFollowingUserTweets)
 	}

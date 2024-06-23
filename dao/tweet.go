@@ -218,7 +218,7 @@ func PostReply(token *auth.Token, body string, tags []string, repliedTweetID str
 		tx.Rollback()
 		return tweet, err
 	}
-	
+
 	for _, tag := range tags {
 		var tagId string
 		err := db.QueryRow("SELECT id FROM tag WHERE tag = ?", tag).Scan(&tagId)
@@ -334,9 +334,10 @@ func GetFollowingUserTweets(token *auth.Token, tags []string) ([]model.Tweet, er
 		for _, tag := range tags {
 			// tagを含むツイートたち
 			rows, err := db.Query("SELECT t.* from tweet t "+
+				"join follow f on t.posted_by = f.followee_id "+
 				"INNER JOIN tweet_tag tt ON t.id = tt.tweet_id "+
 				"INNER JOIN tag tg ON tt.tag_id = tg.id "+
-				"WHERE tg.tag = ?;", tag)
+				"WHERE tg.tag = ? and f.follower_id = ?;", tag, token.UID)
 
 			if err != nil {
 				log.Printf(err.Error())
